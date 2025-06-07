@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Tasks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+        th {
+            background: #f0f0f0;
+            color: #222;
+        }
+        tr:nth-child(even) {
+            background: #f7f7f7;
+        }
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            th {
+                position: absolute;
+                left: -9999px;
+                top: -9999px;
+            }
+            tr {
+                margin-bottom: 1rem;
+                border-bottom: 2px solid #eee;
+            }
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                min-height: 2.5rem;
+            }
+            td:before {
+                position: absolute;
+                left: 1rem;
+                top: 0;
+                width: 45%;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #888;
+            }
+            td:nth-of-type(1):before { content: "ID"; }
+            td:nth-of-type(2):before { content: "Title"; }
+            td:nth-of-type(3):before { content: "Description"; }
+            td:nth-of-type(4):before { content: "Done"; }
+        }
+    </style>
+</head>
+<body>
+<h1>Task List</h1>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Status</th>
+    </tr>
+    <tr th:each="task : ${tasks}">
+        <td th:text="${task.id}"></td>
+        <td th:text="${task.title}"></td>
+        <td th:text="${task.description}"></td>
+        // show checkbox for done status
+        <td>
+            <form th:action="@{/tasks/update/{id}(id=${task.id})}" method="post">
+                <input type="checkbox" name="done" th:checked="${task.done}" />
+                <button type="submit"><span th:text="${task.done ? '✅' : '❌'}"></span></button>
+            </form>
+        </td>
+        // Add a form to delete the task
+        <td>
+            <form th:action="@{/tasks/delete/{id}(id=${task.id})}" method="post">
+                <button type="submit">🗑️</button>
+            </form>
+        </td>
+
+    </tr>
+
+    <tr>
+        <td colspan="4">
+            <form th:action="@{/tasks/add}" method="post">
+                <input type="text" name="title" placeholder="Title" required />
+                <input type="text" name="description" placeholder="Description" required />
+                <button type="submit">➕</button>
+            </form>
+        </td>
+</table>
+</body>
+</html>
