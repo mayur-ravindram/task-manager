@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.mayur.portfolio</groupId>
-	<artifactId>task.manager</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>task.manager</name>
+	<name>backend</name>
 	<description>learning process</description>
 	<url/>
 	<licenses>
