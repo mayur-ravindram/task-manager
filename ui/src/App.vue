@@ -6,6 +6,41 @@ const newTask = ref({
   description: ''
 });
 
+import { FlagIcon, CheckIcon, TrashIcon, PencilIcon } from '@heroicons/vue/24/solid'
+
+const editingTask = ref(null);
+
+const startEditing = (task) => {
+  editingTask.value = { ...task }; // Create a copy to avoid modifying the original task directly
+};
+
+const cancelEdit = () => {
+  editingTask.value = null;
+};
+
+const saveTask = async (task) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(task)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.log('Task updated successfully:', task.id);
+    editingTask.value = null; // Exit editing mode
+    await fetchTasks(); // Refresh the list after update
+  } catch (error) {
+    console.error('Error updating task:', error);
+    // Consider providing user feedback for the error
+  }
+};
+
 const API_BASE_URL = 'http://localhost:8080/tasks';
 
 // add code to fetch tasks from backend api
@@ -28,6 +63,10 @@ const fetchTasks = async () => {
 onMounted(fetchTasks);
 
 const addTask = async () => {
+  if (!newTask.value.title || !newTask.value.description) {
+    alert('Please enter both title and description');
+    return;
+  }
   try {
     const response = await fetch(API_BASE_URL, { // Assumes POST to /tasks creates a task
       method: 'POST',
@@ -85,11 +124,14 @@ const deleteTask = async (task) => {
   }
 };
 
+const updateTask = async (task) => {
+  startEditing(task);
+};
+
 
 </script>
 
 <template>
-  <!-- add nice tailwindcss style to this template -->
   <div class="container mx-auto p-4">
     <header class="mb-8">
       <div class="flex bg-green-300 w-10 justify-center rounded-full">
@@ -123,37 +165,53 @@ const deleteTask = async (task) => {
       <h2 class="text-2xl font-bold text-center mb-4">Tasks</h2>
 
       <div class="overflow-x-auto">
-        <table class="min-w-full table-auto border-collapse border border-gray-200">
+        <table class="table-auto border-collapse border border-gray-200">
           <thead>
             <tr class="bg-gray-100">
               <th class=" px-4 py-2 text-left text-gray-600 font-bold">Title</th>
               <th class=" px-4 py-2 text-left text-gray-600 font-bold">Description</th>
               <th class=" px-4 py-2 text-left text-gray-600 font-bold">Status</th>
-              <th class=" px-4 py-2 text-left text-gray-600 font-bold">Action</th>
+              <th class=" px-4 py-2 text-center text-gray-600 font-bold">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="task in tasks" :key="task.id" class="hover:bg-gray-50">
-              <td class=" px-4 py-2">{{ task.title }}</td>
-              <td class=" px-4 py-2">{{ task.description }}</td>
-              <!-- on hover of this cell, make the status toggle -->
 
-              <!-- add a button to toggle the status -->
-              <td class=" px-4 py-2">{{ task.done ? 'Done' : 'Ongoing' }}</td>
-              <td class=" px-4 py-2">
-                <button @click="toggleStatus(task)" class="">
-                  <!-- instead of text add HeroIcon as button label -->
-                  {{ task.done ? 'Mark Ongoing' : 'Mark Done' }}
-                  <component :is="task.done ? FlagIcon : CheckIcon" class="h-5 w-5 inline-block mr-1" />
-                </button>
-              </td>
-              <td class=" px-4 py-2">
-                <button @click="deleteTask(task)" class="">
-                  <TrashIcon class="h-5 w-5 inline-block mr-1" />
-                </button>
-              </td>
-
-            </tr>
+            <!-- make this template when updateTask is called else otherwise -->
+            <template v-if="editingTask">
+              <tr>
+                <td class=" px-4 py-2">
+                  <input type="text" v-model="editingTask.title" class="">
+                </td>
+                <td class=" px-4 py-2">
+                  <textarea v-model="editingTask.description" class=""></textarea>
+                </td>
+                <td class=" px-4 py-2">
+                  <input type="checkbox" v-model="editingTask.done">
+                </td>
+                <td class=" p-2 text-center flex justify-between">
+                  <a href="#" @click="saveTask(editingTask)" class="p-2">Save</a>
+                </td>
+              </tr>
+            </template>
+            <template v-else>
+              <tr v-for="task in tasks" :key="task.id" class="hover:bg-gray-50">
+                <td class=" px-4 py-2">{{ task.title }}</td>
+                <td class=" px-4 py-2">{{ task.description }}</td>
+                <td class=" px-4 py-2">{{ task.done ? 'Done' : 'Ongoing' }}</td>
+                <td class=" px-4 py-2 text-center">
+                  <a href="#" class="m-2 p-2" @click="toggleStatus(task)">
+                    {{ task.done ? '' : '' }}
+                    <component :is="task.done ? FlagIcon : CheckIcon" class="h-5 w-5 inline-block mr-1" />
+                  </a>
+                  <a href="#" class="m-2 p-2" @click="deleteTask(task)">
+                    <TrashIcon class="h-5 w-5 inline-block mr-1 text-red-500" />
+                  </a>
+                  <a href="#" class="m-2 p-2" @click="updateTask(task)">
+                    <PencilIcon class="h-5 w-5 inline-block mr-1 text-blue-500" />
+                  </a>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -161,7 +219,3 @@ const deleteTask = async (task) => {
     </header>
   </div>
 </template>
-
-<script>
-import { FlagIcon, CheckIcon, TrashIcon } from '@heroicons/vue/24/solid'
-</script>
