@@ -2,6 +2,8 @@ package com.mayur.portfolio.task.manager.controller;
 
 import com.mayur.portfolio.task.manager.model.Task;
 import com.mayur.portfolio.task.manager.repo.TaskRepository;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,9 +33,9 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task createTask(@RequestBody Task task) {
+    public ResponseEntity<Task> createTask(@RequestBody @Valid Task task) {
         task.setDone(false);
-        return taskRepository.save(task);
+        return new ResponseEntity<>(taskRepository.save(task), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
